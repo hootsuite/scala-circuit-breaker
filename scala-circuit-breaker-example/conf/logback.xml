@@ -1,0 +1,36 @@
+<configuration scan="true">
+
+  <!--
+    Based on our use of akka-slf4j & logback, this is the order of logging levels we can use:
+      (most verbose) DEBUG, INFO, WARN, ERROR (least verbose)
+  -->
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>/tmp/circuit-breaker-example.log</file>
+    <encoder>
+      <pattern>%date{ISO8601} %-5level [%logger] - %msg%n</pattern>
+    </encoder>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>DEBUG</level>
+    </filter>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>/tmp/circuit-breaker-example-%d{yyyy-MM-dd-HH}.log
+      </fileNamePattern>
+      <maxHistory>48</maxHistory>
+    </rollingPolicy>
+  </appender>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%date{ISO8601} %-5level [%logger] - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="com.ning.http.client.providers.netty" level="INFO"/>
+
+  <root level="DEBUG">
+    <appender-ref ref="FILE"/>
+    <appender-ref ref="CONSOLE"/>
+  </root>
+
+</configuration>

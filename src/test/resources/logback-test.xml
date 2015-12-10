@@ -1,0 +1,15 @@
+<configuration>
+  <!-- output all logs to a target/test.log and NOT the console to avoid noise -->
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <file>target/test-circuitbreaker.log</file>
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+    <!-- Recreate the log file every test run -->
+    <param name="Append" value="false" />
+  </appender>
+
+  <root level="DEBUG">
+    <appender-ref ref="FILE" />
+  </root>
+</configuration>
