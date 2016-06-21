@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
  * @param stateChangeListeners listeners that will be notified when the circuit breaker changes state (open <--> closed)
  * @param invocationListeners listeners that will be notified whenever the circuit breaker handles a method/function call
  */
-private[circuitbreaker] class CircuitBreaker (
+class CircuitBreaker private[circuitbreaker] (
   val name: String,
   val failLimit: Int,
   val retryDelay: FiniteDuration,
