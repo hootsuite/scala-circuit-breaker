@@ -6,7 +6,7 @@ organizationName := "Hootsuite Media Inc."
 organizationHomepage := Some(url("http://hootsuite.com"))
 version := Version.project
 scalaVersion := Version.scala
-crossScalaVersions in ThisBuild := Seq(Version.previousScala, Version.scala)
+crossScalaVersions := Seq(Version.previousScala, Version.scala)
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 
