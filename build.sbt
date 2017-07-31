@@ -1,12 +1,10 @@
-import Settings._
-import Version._
-
 name         := "scala-circuit-breaker"
 organization := "com.hootsuite"
 organizationName := "Hootsuite Media Inc."
 organizationHomepage := Some(url("http://hootsuite.com"))
 version      := Version.project
 scalaVersion := Version.scala
+crossScalaVersions in ThisBuild := Seq(Version.previousScala, Version.scala)
 
 scalacOptions := Seq("-unchecked", "-deprecation", "-encoding", "utf8")
 
@@ -17,7 +15,7 @@ libraryDependencies ++= Seq(
   "org.slf4j"         %  "slf4j-api"        % "1.7.13",
   "ch.qos.logback"    %  "logback-core"     % "1.1.3",
   "ch.qos.logback"    %  "logback-classic"  % "1.1.3",
-  "org.scalatest"     %% "scalatest"        % "2.2.6"   % Test
+  "org.scalatest"     %% "scalatest"        % "3.0.1"   % Test
 )
 
 Settings.publishSettings
