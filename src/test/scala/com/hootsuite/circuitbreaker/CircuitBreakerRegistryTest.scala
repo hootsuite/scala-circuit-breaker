@@ -6,7 +6,6 @@ import scala.concurrent.duration.Duration
 import scala.util.Try
 import java.util.concurrent.TimeUnit
 
-
 class CircuitBreakerRegistryTest extends FlatSpec with Matchers with BeforeAndAfter {
 
   before {
@@ -29,7 +28,7 @@ class CircuitBreakerRegistryTest extends FlatSpec with Matchers with BeforeAndAf
     new CircuitBreakerBuilder(name, 1, retryDelay).build()
     val retrieved = CircuitBreakerRegistry.get(name)
 
-    retrieved should be ('defined)
+    retrieved should be('defined)
   }
 
   it should "return None when looking up an unknown circuit breaker" in {
@@ -44,8 +43,8 @@ class CircuitBreakerRegistryTest extends FlatSpec with Matchers with BeforeAndAf
     CircuitBreakerRegistry.getAll should not be 'empty
     val removed = CircuitBreakerRegistry.remove(name)
 
-    removed should be ('defined)
-    CircuitBreakerRegistry.getAll should be ('empty)
+    removed should be('defined)
+    CircuitBreakerRegistry.getAll should be('empty)
   }
 
   it should "allow removal of circuit breaker by reference" in {
@@ -53,25 +52,25 @@ class CircuitBreakerRegistryTest extends FlatSpec with Matchers with BeforeAndAf
     CircuitBreakerRegistry.getAll should not be 'empty
     val removed = CircuitBreakerRegistry.remove(circuitBreaker)
 
-    removed should be ('defined)
-    CircuitBreakerRegistry.getAll should be ('empty)
+    removed should be('defined)
+    CircuitBreakerRegistry.getAll should be('empty)
   }
 
   it should "allow registering multiple circuit breakers" in {
     new CircuitBreakerBuilder("one", 1, retryDelay).build()
     new CircuitBreakerBuilder("two", 1, retryDelay).build()
 
-    CircuitBreakerRegistry.getAll.size should be (2)
-    CircuitBreakerRegistry.get("one") should be ('defined)
-    CircuitBreakerRegistry.get("two") should be ('defined)
+    CircuitBreakerRegistry.getAll.size should be(2)
+    CircuitBreakerRegistry.get("one") should be('defined)
+    CircuitBreakerRegistry.get("two") should be('defined)
   }
 
   it should "return a read-once version of the underlying circuit breaker" in {
     val name = "trip fast"
-    val actualCircuitBreaker = new CircuitBreakerBuilder(name, 1, retryDelay)
-      .build()
+    val actualCircuitBreaker = new CircuitBreakerBuilder(name, 1, retryDelay).build()
 
-    val lookedUpCircuitBreaker = CircuitBreakerRegistry.get(name).getOrElse(throw new Exception("should've found this!"))
+    val lookedUpCircuitBreaker =
+      CircuitBreakerRegistry.get(name).getOrElse(throw new Exception("should've found this!"))
 
     //initial state - actual and looked up are the same
     actualCircuitBreaker.isFlowing shouldEqual true
@@ -84,8 +83,8 @@ class CircuitBreakerRegistryTest extends FlatSpec with Matchers with BeforeAndAf
     }
 
     //now trip the breaker
-    Try{myOperation}
-    Try{myOperation}
+    Try { myOperation }
+    Try { myOperation }
 
     actualCircuitBreaker.isFlowing shouldEqual false
     lookedUpCircuitBreaker.isFlowing should not be actualCircuitBreaker.isFlowing

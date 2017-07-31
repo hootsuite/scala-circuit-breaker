@@ -46,12 +46,11 @@ class PingActor extends Actor {
       }
   }
 
-  private def ping(): Future[String] = {
+  private def ping(): Future[String] =
     client.url(url).get().map { response =>
       if (response.status == Status.OK) response.body
       else throw new Exception(response.statusText)
     }
-  }
 }
 
 object PingActor {
