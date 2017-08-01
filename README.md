@@ -1,8 +1,8 @@
-#Circuit Breaker
+# Circuit Breaker
 
-## What is Circuit Breaker?
+## What is a Circuit Breaker?
 
-Circuit breaker monitors number of failed requests and decides to delay sending further requests
+A circuit breaker monitors the number of failed requests and decides to delay sending further requests
 based on configurable threshold. Read more about [circuit breakers](http://martinfowler.com/bliki/CircuitBreaker.html).
 Failure threshold, delay time, failure criteria, and event listeners are configurable in config file and code.
 

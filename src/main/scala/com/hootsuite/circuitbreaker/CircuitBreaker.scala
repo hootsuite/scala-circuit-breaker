@@ -66,7 +66,7 @@ class CircuitBreaker private[circuitbreaker] (
     } match {
 
       //check if we should return a fallback
-      case Failure(e: CircuitBreakerBrokenException) if fallback.isDefined =>
+      case Failure(_: CircuitBreakerBrokenException) if fallback.isDefined =>
         logger.debug(
           s"Circuit breaker \'$name\' in broken/open state, returning fallback value: ${fallback.get}"
         )
@@ -90,7 +90,7 @@ class CircuitBreaker private[circuitbreaker] (
     } match {
 
       //check if we should return a fallback
-      case Failure(e: CircuitBreakerBrokenException) if fallback.isDefined =>
+      case Failure(_: CircuitBreakerBrokenException) if fallback.isDefined =>
         logger.debug(
           s"Circuit breaker \'$name\' in broken/open state, returning fallback value: ${fallback.get}"
         )
@@ -188,12 +188,26 @@ class CircuitBreaker private[circuitbreaker] (
   /**
     * @inheritdoc
     */
-  override def isFlowing: Boolean = state.get().isInstanceOf[FlowState]
+  override def isFlowing: Boolean = state.get() match {
+    case _: FlowState => true
+    case _ => false
+  }
 
   /**
     * @inheritdoc
     */
-  override def isBroken: Boolean = state.get().isInstanceOf[BrokenState]
+  override def isBroken: Boolean = state.get() match {
+    case _: BrokenState => true
+    case _ => false
+  }
+
+  /**
+    * @inheritdoc
+    */
+  override def isWaiting: Boolean = state.get() match {
+    case s: BrokenState if System.currentTimeMillis() > s.retryAt => true
+    case _ => false
+  }
 }
 
 /**
@@ -234,7 +248,7 @@ private object CircuitBreaker {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  abstract class State(cb: CircuitBreaker) {
+  sealed trait State {
 
     def preInvoke(): Unit
 
@@ -248,7 +262,7 @@ private object CircuitBreaker {
   /**
     * CircuitBreaker is closed/flowing, normal operation.
     */
-  class FlowState(cb: CircuitBreaker) extends State(cb) {
+  class FlowState(cb: CircuitBreaker) extends State {
     private[this] val failureCount = new AtomicInteger
 
     override def preInvoke(): Unit =
@@ -284,8 +298,8 @@ private object CircuitBreaker {
   /**
     * CircuitBreaker is opened/broken. Invocations fail immediately.
     */
-  class BrokenState(cb: CircuitBreaker) extends State(cb) {
-    private[this] val retryAt: Long = System.currentTimeMillis() + cb.retryDelay.toMillis
+  class BrokenState(cb: CircuitBreaker) extends State {
+    val retryAt: Long = System.currentTimeMillis() + cb.retryDelay.toMillis
 
     override def preInvoke(): Unit = {
       cb.invocationListeners.foreach { listener =>

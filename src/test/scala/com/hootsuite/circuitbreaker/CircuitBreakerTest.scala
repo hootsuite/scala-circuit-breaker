@@ -187,6 +187,37 @@ class CircuitBreakerTest extends FlatSpec with Matchers with ScalaFutures {
     }
   }
 
+  it should "be 'waiting' if it is in a tripped state, but the reset time delay has been reached" in {
+    simpleBuilders().map(_.build()).foreach { cb =>
+      def protectedOperation(x: Int, y: Int) = cb() {
+        SimpleOperation.operation(x, y)
+      }
+
+      cb.isFlowing shouldBe true
+      cb.isBroken shouldBe false
+      cb.isWaiting shouldBe false
+
+      (1 to 2).foreach { i =>
+        whenReady(Future(protectedOperation(1, 0)).failed, timeout(Span(100, Millis))) { e =>
+          withClue(s"${cb.name} : failure #$i") {
+            e shouldBe a[ArithmeticException]
+          }
+        }
+      }
+
+      cb.isFlowing shouldBe false
+      cb.isBroken shouldBe true
+      cb.isWaiting shouldBe false
+
+      //wait until after the reset delay time has elapsed
+      waitUntilRetryDelayHasExpired()
+
+      cb.isFlowing shouldBe false
+      cb.isBroken shouldBe true
+      cb.isWaiting shouldBe true
+    }
+  }
+
   it should "let call through to underlying function when reset time delay reached, even with error" in {
     simpleBuilders().map(_.build()).foreach { cb =>
       def protectedOperation(x: Int, y: Int) = cb() {
@@ -288,6 +319,37 @@ class CircuitBreakerTest extends FlatSpec with Matchers with ScalaFutures {
           }
         }
       }
+    }
+  }
+
+  it should "be 'waiting' if it is in a tripped state, but the reset time delay has been reached" in {
+    simpleBuilders().map(_.build()).foreach { cb =>
+      def protectedOperation(x: Int, y: Int) = cb.async() {
+        SimpleOperation.asyncOperation(x, y)
+      }
+
+      cb.isFlowing shouldBe true
+      cb.isBroken shouldBe false
+      cb.isWaiting shouldBe false
+
+      (1 to 2).foreach { i =>
+        whenReady(protectedOperation(1, 0).failed, timeout(Span(100, Millis))) { e =>
+          withClue(s"${cb.name} : failure #$i") {
+            e shouldBe a[ArithmeticException]
+          }
+        }
+      }
+
+      cb.isFlowing shouldBe false
+      cb.isBroken shouldBe true
+      cb.isWaiting shouldBe false
+
+      //wait until after the reset delay time has elapsed
+      waitUntilRetryDelayHasExpired()
+
+      cb.isFlowing shouldBe false
+      cb.isBroken shouldBe true
+      cb.isWaiting shouldBe true
     }
   }
 

@@ -63,11 +63,15 @@ object CircuitBreakerRegistry {
   private[circuitbreaker] def clear(): Unit = circuitBreakerStore.clear()
 }
 
-private case class ClonedCircuitBreaker(name: String, isFlowing: Boolean, isBroken: Boolean)
-  extends ReadOnlyCircuitBreakerSnapshot
+private case class ClonedCircuitBreaker(
+  name: String,
+  isFlowing: Boolean,
+  isBroken: Boolean,
+  isWaiting: Boolean
+) extends ReadOnlyCircuitBreakerSnapshot
 
 private object ClonedCircuitBreaker {
 
   def apply(cb: ReadOnlyCircuitBreakerSnapshot): ClonedCircuitBreaker =
-    new ClonedCircuitBreaker(cb.name, cb.isFlowing, cb.isBroken)
+    new ClonedCircuitBreaker(cb.name, cb.isFlowing, cb.isBroken, cb.isWaiting)
 }
