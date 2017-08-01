@@ -11,16 +11,26 @@ trait ReadOnlyCircuitBreakerSnapshot {
   def name: String
 
   /**
-    * Whether or not this circuit breaker is closed/flowing
+    * Whether this circuit breaker is closed/flowing.
     *
     * @return true if it is, false otherwise
     */
   def isFlowing: Boolean
 
   /**
-    * Whether or not the circuit breaker is opened/broken
+    * Whether this circuit breaker is opened/broken.
     *
     * @return true if it is, false otherwise
     */
   def isBroken: Boolean
+
+  /**
+    * Whether this circuit breaker is opened/broken, but enough
+    * time has elapsed that the next invocation will cause a retry.
+    *
+    * Note: `isBroken` will still return `true` when this returns `true`.
+    *
+    * @return true if it is waiting to retry, false otherwise
+    */
+  def isWaiting: Boolean
 }

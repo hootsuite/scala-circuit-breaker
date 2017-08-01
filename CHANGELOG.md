@@ -1,6 +1,12 @@
 # Changelog
 
+## 1.0.4
+
+- Add `isWaiting` to `ReadOnlyCircuitBreakerSnapshot` that will return `true` if the Circuit Breaker is OPEN/BROKEN and the `retryDelay` has passed, but no additional invocation has been made yet that could close the breaker again.
+    - This can be useful when using `CircuitBreakerRegistry.get` in something like a status check when there is a very low volume of calls flowing through the Circuit Breaker. A Circuit Breaker that is waiting to try another call may not indicate an alertable error.
+
 ## 1.0.3
+
 - No changes were made to the code. JCenter wasn't showing up the new library version.
 
 ## 1.0.2
