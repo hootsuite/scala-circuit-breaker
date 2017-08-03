@@ -15,7 +15,7 @@ Our solution has been powering Scala services in production. It's battle tested 
 build.sbt
 ```
 resolvers += Resolver.jcenterRepo // Adds Bintray to resolvers
-libraryDependencies ++= Seq("com.hootsuite" %% "scala-circuit-breaker" % "1.0.0")
+libraryDependencies ++= Seq("com.hootsuite" %% "scala-circuit-breaker" % "1.x.x")
 ```
 
 ## Usage
