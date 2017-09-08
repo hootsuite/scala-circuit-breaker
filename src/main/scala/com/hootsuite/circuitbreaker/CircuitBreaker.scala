@@ -300,9 +300,10 @@ private object CircuitBreaker {
   /**
     * CircuitBreaker is opened/broken. Invocations fail immediately.
     */
-  class BrokenState(cb: CircuitBreaker, retryCount: Int=0) extends State {
-    val retryDelay: Long = cb.retryDelay.toMillis * Math.pow(2,
-      if (cb.isExponentialBackoff) retryCount else 1).toLong
+  class BrokenState(cb: CircuitBreaker, retryCount: Int = 0) extends State {
+    val retryDelay: Long = cb.retryDelay.toMillis * Math
+      .pow(2, if (cb.isExponentialBackoff) retryCount else 0)
+      .toLong
     val retryAt: Long = System.currentTimeMillis() + retryDelay
 
     override def preInvoke(): Unit = {
