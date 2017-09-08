@@ -14,7 +14,8 @@ class CircuitBreakerRegistryTest extends FlatSpec with Matchers with BeforeAndAf
 
   val retryDelay = Duration(100, TimeUnit.MILLISECONDS)
 
-  private def waitUntilRetryDelayHasExpired() = Thread.sleep(2 * retryDelay.toMillis)
+  private def waitUntilRetryDelayHasExpired() =
+    Thread.sleep(2 * retryDelay.toMillis)
 
   "registry" should "be empty on startup" in {
     CircuitBreakerRegistry.getAll.isEmpty shouldEqual true
@@ -69,7 +70,8 @@ class CircuitBreakerRegistryTest extends FlatSpec with Matchers with BeforeAndAf
 
   it should "return a read-once version of the underlying circuit breaker" in {
     val name = "trip fast"
-    val actualCircuitBreaker = CircuitBreakerBuilder(name, 1, retryDelay).build()
+    val actualCircuitBreaker =
+      CircuitBreakerBuilder(name, 1, retryDelay).build()
 
     val lookedUpCircuitBreaker =
       CircuitBreakerRegistry.get(name).getOrElse(throw new Exception("should've found this!"))

@@ -12,7 +12,8 @@ object CircuitBreakerRegistry {
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  private val circuitBreakerStore = emptyCMap[String, ReadOnlyCircuitBreakerSnapshot]
+  private val circuitBreakerStore =
+    emptyCMap[String, ReadOnlyCircuitBreakerSnapshot]
 
   /**
     * Registers a circuit breaker
@@ -43,13 +44,15 @@ object CircuitBreakerRegistry {
     * @param name name of the circuit breaker to remove
     * @return an option value containing the CircuitBreaker, or None if CircuitBreaker was not present in the map before
     */
-  def remove(name: String): Option[ReadOnlyCircuitBreakerSnapshot] = circuitBreakerStore.remove(name)
+  def remove(name: String): Option[ReadOnlyCircuitBreakerSnapshot] =
+    circuitBreakerStore.remove(name)
 
   /**
     * Gets a read-only snapshot of all CircuitBreakers stored in this registry
     * @return a Map containing a read-only snapshot of all CircuitBreakers stored in this registry
     */
-  def getAll: collection.Map[String, ReadOnlyCircuitBreakerSnapshot] = circuitBreakerStore.readOnlySnapshot()
+  def getAll: collection.Map[String, ReadOnlyCircuitBreakerSnapshot] =
+    circuitBreakerStore.readOnlySnapshot()
 
   /**
     * Gets a read-only snapshot of a CircuitBreaker stored in this registry, by its name
