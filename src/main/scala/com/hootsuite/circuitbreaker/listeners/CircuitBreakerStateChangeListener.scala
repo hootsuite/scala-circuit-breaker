@@ -20,6 +20,16 @@ trait CircuitBreakerStateChangeListener {
   def onTrip(name: String): Unit = { /* blank default implementation */ }
 
   /**
+    * Called when a the circuit breaker is attempting to reset (i.e. open -> waiting)
+    *
+    * @param name - name of the circuit breaker
+    */
+  def onAttemptReset(name: String): Unit = {
+
+    /* blank default implementation */
+  }
+
+  /**
     * Called when a the circuit breaker is closed (i.e. open -> closed)
     *
     * @param name - name of the circuit breaker
