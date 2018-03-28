@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.5
+
+- Remove unused logback-core dependency
+
 ## 1.0.4
 
 - Add `isWaiting` to `ReadOnlyCircuitBreakerSnapshot` that will return `true` if the Circuit Breaker is OPEN/BROKEN and the `retryDelay` has passed, but no additional invocation has been made yet that could close the breaker again.
