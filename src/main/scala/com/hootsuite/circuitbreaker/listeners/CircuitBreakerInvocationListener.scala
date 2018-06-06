@@ -18,4 +18,11 @@ trait CircuitBreakerInvocationListener {
     * @param name - name of the circuit breaker
     */
   def onInvocationInBrokenState(name: String): Unit = { /* empty */ }
+
+  /**
+    * Called when a wrapped function/method is called while the circuit breaker is opened (attempt reset)
+    *
+    * @param name - name of the circuit breaker
+    */
+  def onInvocationInAttemptResetState(name: String): Unit = { /* empty */ }
 }
