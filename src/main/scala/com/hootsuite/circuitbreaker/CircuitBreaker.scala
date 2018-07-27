@@ -17,6 +17,8 @@ import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
   * @param name the name of the circuit breaker
   * @param failLimit maximum number of consecutive failures before the circuit breaker is tripped (opened)
   * @param retryDelay duration until an open/broken circuit breaker lets a call through to verify whether or not it should be reset
+  * @param isExponentialBackoff indicating the retry delayed should be increased exponential on consecutive failures
+  * @param exponentialRetryCap limits the number of times the retryDelay will be increased exponentially, ignored if not exponential backoff
   * @param isResultFailure partial function to allow users to determine return cases which should be considered as failures
   * @param isExceptionNotFailure partial function to allow users to determine exceptions which should not be considered failures
   * @param stateChangeListeners listeners that will be notified when the circuit breaker changes state (open <--> closed)
@@ -26,6 +28,8 @@ class CircuitBreaker private[circuitbreaker] (
   val name: String,
   val failLimit: Int,
   val retryDelay: FiniteDuration,
+  val isExponentialBackoff: Boolean = false,
+  val exponentialRetryCap: Option[Int],
   val isResultFailure: PartialFunction[Any, Boolean] = { case _ => false },
   val isExceptionNotFailure: PartialFunction[Throwable, Boolean] = { case _ => false },
   val stateChangeListeners: List[CircuitBreakerStateChangeListener] = List(),
@@ -38,6 +42,8 @@ class CircuitBreaker private[circuitbreaker] (
       builder.name,
       builder.failLimit,
       builder.retryDelay,
+      builder.isExponentialBackoff,
+      builder.exponentialRetryCap,
       builder.isResultFailure,
       builder.isExceptionNotFailure,
       builder.stateChangeListeners,
@@ -180,9 +186,9 @@ class CircuitBreaker private[circuitbreaker] (
     * @param currentState the expected current state
     * @return true when the state was changed, false when the given state was not the current state
     */
-  def attemptResetBrokenState(currentState: BrokenState): Boolean = {
+  def attemptResetBrokenState(currentState: BrokenState, retryCount: Int): Boolean = {
     logger.debug(s"Circuit breaker \'$name\', attempting to reset open/broken state")
-    state.compareAndSet(currentState, new BrokenState(this))
+    state.compareAndSet(currentState, new BrokenState(this, retryCount))
   }
 
   /**
@@ -286,7 +292,7 @@ private object CircuitBreaker {
     override def onFailure(): Unit =
       incrementFailure()
 
-    private[this] def incrementFailure() = {
+    private[this] def incrementFailure(): Unit = {
       val currentCount = failureCount.incrementAndGet
       logger.debug(
         s"Circuit breaker ${cb.name} increment failure count to $currentCount; fail limit is ${cb.failLimit}"
@@ -298,8 +304,35 @@ private object CircuitBreaker {
   /**
     * CircuitBreaker is opened/broken. Invocations fail immediately.
     */
-  class BrokenState(cb: CircuitBreaker) extends State {
-    val retryAt: Long = System.currentTimeMillis() + cb.retryDelay.toMillis
+  class BrokenState(cb: CircuitBreaker, retryCount: Int = 0) extends State {
+    val retryAt: Long = System.currentTimeMillis() + calcRetryDelay(cb)
+
+    def calcRetryDelay(cb: CircuitBreaker): Long = {
+
+      //calc jitter up to 1/10 the current retryDelay
+      //for exponential backoff
+      val jitter: Long = if (cb.isExponentialBackoff) {
+        (scala.util.Random.nextFloat() * cb.retryDelay.toMillis / 10).toLong
+      } else {
+        0
+      }
+
+      val retryCap = cb.exponentialRetryCap match {
+        case Some(x) => x
+        case None => Int.MaxValue
+      }
+
+      val exponent: Int = if (cb.isExponentialBackoff) {
+        Math.min(retryCount, retryCap)
+      } else 0
+
+      val result = (cb.retryDelay.toMillis + jitter) * Math.pow(2, exponent).toLong
+
+      logger.debug(s"CB details retry delay details: jitter $jitter, " +
+        s"retryCap $retryCap, exponent $exponent delay $result")
+
+      result
+    }
 
     override def preInvoke(): Unit = {
       cb.invocationListeners.foreach { listener =>
@@ -311,7 +344,7 @@ private object CircuitBreaker {
       }
 
       val retry = System.currentTimeMillis > retryAt
-      if (!(retry && cb.attemptResetBrokenState(this))) {
+      if (!(retry && cb.attemptResetBrokenState(this, this.retryCount + 1))) {
         throw new CircuitBreakerBrokenException(
           cb.name,
           s"Making ${cb.name} unavailable after ${cb.failLimit} errors"
@@ -336,6 +369,8 @@ private object CircuitBreaker {
   * @param name the name of the circuit breaker
   * @param failLimit maximum number of consecutive failures before the circuit breaker is tripped (opened)
   * @param retryDelay duration until an open/broken circuit breaker lets a call through to verify whether or not it should be reset
+  * @param isExponentialBackoff indicating the retry delayed should be increased exponential on consecutive failures
+  * @param exponentialRetryCap limits the number of times the retryDelay will be increased exponentially, ignored if not exponential backoff
   * @param isResultFailure partial function to allow users to determine return cases which should be considered as failures
   * @param isExceptionNotFailure partial function to allow users to determine exceptions which should not be considered failures
   * @param stateChangeListeners listeners that will be notified when the circuit breaker changes state (open <--> closed)
@@ -345,6 +380,8 @@ case class CircuitBreakerBuilder(
   name: String,
   failLimit: Int,
   retryDelay: FiniteDuration,
+  isExponentialBackoff: Boolean = false,
+  exponentialRetryCap: Option[Int] = Some(10),
   isResultFailure: PartialFunction[Any, Boolean] = { case _ => false },
   isExceptionNotFailure: PartialFunction[Throwable, Boolean] = { case _ => false },
   stateChangeListeners: List[CircuitBreakerStateChangeListener] = List(),
