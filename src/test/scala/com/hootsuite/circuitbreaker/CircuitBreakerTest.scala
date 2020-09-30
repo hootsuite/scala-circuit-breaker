@@ -1,9 +1,11 @@
 package com.hootsuite.circuitbreaker
 
 import com.hootsuite.circuitbreaker.listeners.{CircuitBreakerInvocationListener, CircuitBreakerStateChangeListener}
+import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
-import org.scalatest.{FlatSpec, Matchers}
+import flatspec._
+import matchers._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -12,7 +14,7 @@ import scala.util.control.ControlThrowable
 import scala.util.{Failure, Success}
 import java.util.concurrent.TimeUnit
 
-class CircuitBreakerTest extends FlatSpec with Matchers with ScalaFutures {
+class CircuitBreakerTest extends AnyFlatSpec with should.Matchers with ScalaFutures {
 
   object SimpleOperation {
 
@@ -924,7 +926,7 @@ class CircuitBreakerTest extends FlatSpec with Matchers with ScalaFutures {
     val circuitBreaker = CircuitBreakerBuilder("register", 2, defaultRetryDelay).build()
 
     val maybeRegisteredCircuitBreaker = CircuitBreakerRegistry.get(circuitBreaker.name)
-    maybeRegisteredCircuitBreaker should be('defined)
+    maybeRegisteredCircuitBreaker shouldBe Symbol("defined")
 
     val registeredCircuitBreaker = maybeRegisteredCircuitBreaker.get
 

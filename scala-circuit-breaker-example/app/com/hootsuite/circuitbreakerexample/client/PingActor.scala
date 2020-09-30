@@ -1,11 +1,9 @@
 package com.hootsuite.circuitbreakerexample.client
 
-import akka.actor.Actor
-import akka.actor.Props
+import akka.actor.{Actor, ActorSystem, Props}
 import com.hootsuite.circuitbreaker.CircuitBreakerBuilder
-import com.ning.http.client.AsyncHttpClientConfig
+import play.api.libs.ws.ahc.AhcWSClient
 import org.slf4j.LoggerFactory
-import play.api.libs.ws.ning.NingWSClient
 import play.api.http.Status
 
 import scala.concurrent.Future
@@ -13,14 +11,17 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 import java.util.concurrent.TimeUnit
 
+import akka.stream.Materializer
+
 class PingActor extends Actor {
   import context.dispatcher
   import PingActor._
 
   private val logger = LoggerFactory.getLogger(getClass)
   private val url = "http://localhost:9000/ping"
-  private val builder = new AsyncHttpClientConfig.Builder()
-  private val client = new NingWSClient(builder.build())
+  implicit val system       = ActorSystem()
+  implicit val materializer = Materializer.matFromSystem
+  private val client = AhcWSClient()
 
   private val circuitBreaker = new CircuitBreakerBuilder(
     name = "my-circuit-breaker",
@@ -30,7 +31,7 @@ class PingActor extends Actor {
     invocationListeners = List(CircuitBreakerHelper.defaultLoggingInvocationListener(logger))
   ).build()
 
-  context.system.scheduler.schedule(2.second, 400.milliseconds, self, Tick)
+  context.system.scheduler.scheduleWithFixedDelay(2.second, 400.milliseconds, self, Tick)
 
   override def receive: Receive = {
     case Tick =>

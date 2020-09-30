@@ -3,8 +3,10 @@ package controllers
 import play.api.libs.json._
 import play.api.mvc._
 import utils.PingService
+import javax.inject.{Inject, Singleton}
 
-object Application extends Controller {
+@Singleton
+class Application @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
 
   def ping() = Action {
     if (PingService.currentStatus()) Ok(Json.toJson("Pong!"))

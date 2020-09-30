@@ -1,20 +1,22 @@
 package com.hootsuite.circuitbreaker
 
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
+import org.scalatest._
+import flatspec._
+import matchers._
 
 import scala.concurrent.duration.Duration
 import scala.util.Try
 import java.util.concurrent.TimeUnit
 
-class CircuitBreakerRegistryTest extends FlatSpec with Matchers with BeforeAndAfter {
+class CircuitBreakerRegistryTest extends AnyFlatSpec with should.Matchers with BeforeAndAfter {
 
   before {
     CircuitBreakerRegistry.clear()
   }
 
-  val retryDelay = Duration(100, TimeUnit.MILLISECONDS)
+  private val retryDelay = Duration(100, TimeUnit.MILLISECONDS)
 
-  private def waitUntilRetryDelayHasExpired() = Thread.sleep(2 * retryDelay.toMillis)
+  private def waitUntilRetryDelayHasExpired(): Unit = Thread.sleep(2 * retryDelay.toMillis)
 
   "registry" should "be empty on startup" in {
     CircuitBreakerRegistry.getAll.isEmpty shouldEqual true
@@ -30,32 +32,32 @@ class CircuitBreakerRegistryTest extends FlatSpec with Matchers with BeforeAndAf
     CircuitBreakerBuilder(name, 1, retryDelay).build()
     val retrieved = CircuitBreakerRegistry.get(name)
 
-    retrieved should be('defined)
+    retrieved should be(Symbol("defined"))
   }
 
   it should "return None when looking up an unknown circuit breaker" in {
     val retrieved = CircuitBreakerRegistry.get("unknown")
 
-    retrieved should not be 'defined
+    retrieved should not be Symbol("defined")
   }
 
   it should "allow removal of circuit breaker by name" in {
     val name = "the name"
     CircuitBreakerBuilder(name, 1, retryDelay).build()
-    CircuitBreakerRegistry.getAll should not be 'empty
+    CircuitBreakerRegistry.getAll should not be Symbol("empty")
     val removed = CircuitBreakerRegistry.remove(name)
 
-    removed should be('defined)
-    CircuitBreakerRegistry.getAll should be('empty)
+    removed should be(Symbol("defined"))
+    CircuitBreakerRegistry.getAll shouldBe Symbol("empty")
   }
 
   it should "allow removal of circuit breaker by reference" in {
     val circuitBreaker = CircuitBreakerBuilder("a name", 1, retryDelay).build()
-    CircuitBreakerRegistry.getAll should not be 'empty
+    CircuitBreakerRegistry.getAll should not be Symbol("empty")
     val removed = CircuitBreakerRegistry.remove(circuitBreaker)
 
-    removed should be('defined)
-    CircuitBreakerRegistry.getAll should be('empty)
+    removed shouldBe Symbol("defined")
+    CircuitBreakerRegistry.getAll shouldBe Symbol("empty")
   }
 
   it should "allow registering multiple circuit breakers" in {
@@ -63,8 +65,8 @@ class CircuitBreakerRegistryTest extends FlatSpec with Matchers with BeforeAndAf
     CircuitBreakerBuilder("two", 1, retryDelay).build()
 
     CircuitBreakerRegistry.getAll.size should be(2)
-    CircuitBreakerRegistry.get("one") should be('defined)
-    CircuitBreakerRegistry.get("two") should be('defined)
+    CircuitBreakerRegistry.get("one") shouldBe Symbol("defined")
+    CircuitBreakerRegistry.get("two") shouldBe Symbol("defined")
   }
 
   it should "return a read-once version of the underlying circuit breaker" in {
