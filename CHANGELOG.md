@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6
+
+- Cross compile with Scala 2.11, 2.12, and 2.13
+
 ## 1.0.5
 
 - Remove unused logback-core dependency
